@@ -62,3 +62,28 @@ diferente do BlueStacks. Passos:
 ### Envio no emulador
 Com o emulador, o worker pode usar `input tap` nas coordenadas do botão `send`
 (bounds do uiautomator dump) para enviar a mensagem, em vez de depender do deep link + ENTER.
+
+## Linux
+
+O código (Node.js) é multiplataforma. No Linux:
+
+1. Instale o Android SDK + emulator (via Android Studio ou sdkmanager).
+2. Instale o KVM: `sudo apt install qemu-kvm` (Ubuntu/Debian) e adicione seu usuário ao grupo `kvm`.
+3. Crie um AVD com Play Store (via Android Studio GUI ou `avdmanager`).
+4. Inicie o emulador: `emulator -avd <nome> -no-snapshot-load -no-window`.
+5. Instale o WhatsApp via Play Store (login Google manual).
+6. Ajuste `.env`:
+   ```
+   ADB_PATH=/usr/bin/adb  (ou /home/<user>/Android/Sdk/platform-tools/adb)
+   ADB_SERIAL=emulator-5554
+   ```
+7. Rode a API e o worker.
+
+### Limitações no Linux
+- BlueStacks não roda no Linux (apenas Windows/macOS).
+- O emulador do Android SDK requer KVM para performance aceitável.
+- WhatsApp pode detectar o emulador e solicitar re-verificação por SMS.
+
+### Teste automatizado
+O envio via `input tap` funciona no emulador Android Studio (coordenadas físicas = coordenadas da UI, rotação 0).
+No BlueStacks, `input tap` não funciona (coordenadas não mapeiam).
