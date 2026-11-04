@@ -1,0 +1,29 @@
+// src/config.js
+const path = require('node:path');
+const fs = require('node:fs');
+
+function loadEnv() {
+  const envPath = path.join(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^"|"$/g, '');
+    }
+  }
+}
+loadEnv();
+
+const config = {
+  port: Number(process.env.PORT || 3100),
+  host: process.env.HOST || '127.0.0.1',
+  apiKey: process.env.API_KEY || 'change-me',
+  adbPath: process.env.ADB_PATH || 'C:\\Program Files\\BlueStacks_nxt\\HD-Adb.exe',
+  adbSerial: process.env.ADB_SERIAL || '127.0.0.1:5555',
+  dbPath: process.env.DB_PATH || path.join(process.cwd(), 'data', 'aprove.db'),
+  webhookSecret: process.env.WEBHOOK_SECRET || 'change-me-webhook',
+  pollIntervalMs: Number(process.env.POLL_INTERVAL_MS || 2000),
+  maxRetries: Number(process.env.MAX_RETRIES || 3),
+  logLevel: process.env.LOG_LEVEL || 'info',
+};
+
+module.exports = config;

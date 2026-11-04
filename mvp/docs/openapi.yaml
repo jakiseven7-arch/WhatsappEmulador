@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Aprove WA MVP
+  version: 0.1.0
+  description: API local para integração Aprove <-> WhatsApp (BlueStacks/ADB).
+servers:
+  - url: http://127.0.0.1:3100
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Instance:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        adb_serial: { type: string }
+        status: { type: string }
+        paused: { type: integer }
+        last_seen_at: { type: string, nullable: true }
+    Message:
+      type: object
+      properties:
+        id: { type: string }
+        instance_id: { type: string }
+        direction: { type: string, enum: [out, in] }
+        to_number: { type: string, nullable: true }
+        from_number: { type: string, nullable: true }
+        body: { type: string, nullable: true }
+        status: { type: string }
+        observed_status: { type: string, nullable: true }
+        correlation_id: { type: string, nullable: true }
+        idempotency_key: { type: string, nullable: true }
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses: { '200': { description: OK } }
+  /instances:
+    get:
+      summary: List instances
+      responses: { '200': { description: OK } }
+  /instances/{id}/status:
+    get:
+      summary: Instance status
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+  /instances/{id}/pause:
+    post:
+      summary: Pause automation
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+  /instances/{id}/resume:
+    post:
+      summary: Resume automation
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+  /messages/text:
+    post:
+      summary: Send text message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [instance_id, to, body]
+              properties:
+                instance_id: { type: string }
+                to: { type: string }
+                body: { type: string }
+                idempotency_key: { type: string }
+                correlation_id: { type: string }
+      responses: { '202': { description: Accepted } }
+  /messages/media:
+    post:
+      summary: Send media (experimental)
+      responses: { '501': { description: Not implemented } }
+  /messages/{id}:
+    get:
+      summary: Get message
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+  /webhooks:
+    post:
+      summary: Register webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string }
+                secret: { type: string }
+      responses: { '201': { description: Created } }

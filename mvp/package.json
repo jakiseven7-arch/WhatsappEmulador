@@ -1,0 +1,16 @@
+{
+  "name": "aprove-wa-mvp",
+  "version": "0.1.0",
+  "description": "MVP de API local para integração Aprove <-> WhatsApp (via BlueStacks/ADB). Sem dependências externas além do Node 24.",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "worker": "node src/worker.js",
+    "dev": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {}
+}
