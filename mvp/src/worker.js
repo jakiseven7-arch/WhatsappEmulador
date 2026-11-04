@@ -3,6 +3,7 @@ const config = require('./config');
 const { db, now } = require('./db');
 const queue = require('./queue');
 const adb = require('./adapter/adb');
+const wa = require('./adapter/whatsapp-ui');
 
 const INSTANCE_ID = 'bs-local-1';
 
@@ -20,9 +21,27 @@ async function handleCommand(cmd) {
     const url = `https://wa.me/${to}?text=${encodeURIComponent(body)}`;
     const r = adb.shell(`am start -a android.intent.action.VIEW -d "${url}"`);
     if (!r.ok) throw new Error(r.stderr || 'am start failed');
-    await new Promise((res) => setTimeout(res, 4000));
-    adb.shell('input keyevent 66');
-    return { command: 'chat_opened_text_prefilled', to, observed: 'action_executed', note: 'Envio nao confirmado: calibrar tap no botao send (com.whatsapp:id/send) ou usar emulador alternativo.' };
+    await new Promise((res) => setTimeout(res, 5000));
+    // Dump UI and find send button
+    adb.shell('uiautomator dump /sdcard/ui.xml');
+    await new Promise((res) => setTimeout(res, 2000));
+    const pull = adb.pullFile('/sdcard/ui.xml', '/tmp/ui.xml');
+    let sent = false;
+    try {
+      const fs = require('node:fs');
+      const xml = fs.readFileSync('/tmp/ui.xml', 'utf8');
+      const node = wa.findNodeByResourceId(xml, wa.SELECTORS.sendButton);
+      if (node) {
+        adb.shell(`input tap ${node.center[0]} ${node.center[1]}`);
+        sent = true;
+      }
+    } catch (e) {
+      // fallback
+    }
+    if (!sent) {
+      adb.shell('input keyevent 66');
+    }
+    return { command: 'send_attempt', to, sent, observed: sent ? 'tap_executed' : 'fallback_enter', note: 'Envio observado como acao executada; confirmacao de entrega requer poll de UI.' };
   }
   if (cmd.type === 'health_check') {
     const online = adb.isDeviceOnline();
@@ -45,8 +64,9 @@ async function loop() {
           const result = await handleCommand(cmd);
           queue.markDone(cmd.id, result);
           if (cmd.payload && cmd.payload.message_id) {
+            const status = result.sent ? 'sent_uncertain' : 'queued';
             db.prepare('UPDATE messages SET status=?, observed_status=?, updated_at=? WHERE id=?')
-              .run('sent_uncertain', 'action_executed', now(), cmd.payload.message_id);
+              .run(status, result.observed, now(), cmd.payload.message_id);
           }
           console.log(`[worker] done ${cmd.id}`);
         } catch (e) {

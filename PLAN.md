@@ -122,3 +122,34 @@ Status final de recursos:
 | Recebimento via notificações | Parcial (experimental) |
 | Recebimento via UI | Parcial (seletores mapeados) |
 | Imagens/documentos | Não testado |
+## Fluxos mapeados
+
+### A. Registro de número (adicionar número) — mapeado
+1. Tela `register_phone_layout`: país (`registration_country`), código (`registration_cc`), número (`registration_phone`), botão (`registration_submit`/`button_view` "AVANÇAR").
+2. Após enviar, WhatsApp envia código SMS (fora do escopo de automação — usuário informa manualmente ou via SMS gateway).
+3. Tela de código SMS (a mapear com número real).
+4. Tela de perfil (nome/foto) (a mapear).
+5. Tela principal (lista de conversas) — mapeada.
+
+### B. Vinculação de dispositivo (QR code / Linked Devices) — não testado
+- Caminho: Configurações ? Aparelhos conectados ? Conectar um aparelho ? exibe QR code.
+- Requer toque em menuitem_overflow (coordenadas não confiáveis neste emulador).
+- O QR code é exibido na tela; para automação, seria necessário capturar a tela (screencap) e decodificar o QR (ex.: zbar/pyzbar).
+- Uso: vincular o emulador como dispositivo secundário a uma conta existente, sem SMS.
+- Limitação: o dispositivo principal precisa escanear o QR; não é "adicionar número", é "vincular dispositivo".
+
+### C. Envio de mensagem (parcial)
+- Abrir conversa: deep link `whatsapp://send?phone=...&text=...` (comprovado).
+- Pré-preenchimento de texto: comprovado.
+- Toque no botão enviar: INDISPONÍVEL neste BlueStacks (input tap não funciona).
+- Workaround: ENTER não envia; DPAD_CENTER não envia.
+
+### D. Recebimento (parcial)
+- Notificações: endpoint experimental `/instances/{id}/notifications` (dumpsys notification + parse heurístico).
+- UI scraping: seletores mapeados, polling necessário.
+- Diferenciação de mensagens novas vs processadas: requer persistência de IDs/last_seen (a implementar).
+
+### E. Mídia (não testado)
+- Transferência de arquivos: `adb push` para /sdcard (comprovado funcional).
+- Seleção de anexo: `input_attach_button` (seletor mapeado).
+- Validação de tipo/tamanho/integridade: a implementar.

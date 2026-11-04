@@ -42,3 +42,23 @@ node src/worker.js
 - Recebimento de mensagens ainda não implementado (próxima iteração: notificações + UI).
 - Mídia (imagem/PDF) experimental.
 - Uma instância = uma ação de UI por vez (serialização no worker).
+
+## Emulador Android Studio (recomendado para envio)
+
+O Android Studio Emulator (API 36, google_apis_playstore) suporta `input tap` com coordenadas f�sicas,
+diferente do BlueStacks. Passos:
+
+1. Inicie o emulador:
+   ```
+   set ANDROID_HOME=C:\Users\evert\AppData\Local\Android\Sdk
+   %ANDROID_HOME%\emulator\emulator.exe -avd Pixel_7_API_36 -no-snapshot-load -no-window
+   ```
+2. Aguarde o boot (~2 min). Verifique: `adb devices` deve mostrar `emulator-5554`.
+3. Instale o WhatsApp via Play Store (login Google manual na UI do emulador).
+4. Registre o n�mero (SMS) manualmente.
+5. Ajuste `.env`: `ADB_SERIAL=emulator-5554`.
+6. Rode a API e o worker.
+
+### Envio no emulador
+Com o emulador, o worker pode usar `input tap` nas coordenadas do bot�o `send`
+(bounds do uiautomator dump) para enviar a mensagem, em vez de depender do deep link + ENTER.
