@@ -86,6 +86,7 @@ const routes = {
     const r = notif.getWhatsAppNotifications();
     send(res, 200, r);
   },
+  'POST /webhooks': async (req, res) => {
     const body = await readBody(req);
     if (!body.url) return send(res, 400, { error: 'url required' });
     const id = crypto.randomUUID();
